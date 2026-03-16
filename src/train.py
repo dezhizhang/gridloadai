@@ -42,42 +42,57 @@ def ana_data(data):
     ax1.set_title('负荷整体分布情况')
     ax1.set_xlabel('负荷')
 
-
     # 2. 新增一列充当小时
     ana_data["hour"] = ana_data['time'].str[11:13]
     hour_load_mean = ana_data.groupby(['hour'], as_index=False)['power_load'].mean()
 
     # 3. 绘制图表
     ax2 = fig.add_subplot(412)
-    ax2.plot(hour_load_mean['hour'],hour_load_mean['power_load'])
+    ax2.plot(hour_load_mean['hour'], hour_load_mean['power_load'])
     ax2.set_title('各个小时平均负荷趋势')
     ax2.set_xlabel('小时')
-
 
     # 3. 各个月份的平均负荷趋势
     ana_data["month"] = ana_data['time'].str[5:7]
     month_load_mean = ana_data.groupby(['month'], as_index=False)['power_load'].mean()
     ax3 = fig.add_subplot(413)
-    ax3.plot(month_load_mean['month'],month_load_mean['power_load'])
+    ax3.plot(month_load_mean['month'], month_load_mean['power_load'])
     ax3.set_title('各个月份的平均负荷趋势')
     ax3.set_xlabel('月份')
 
     # 4. 工作日与周未的平均负荷情况
     ana_data["weekday"] = ana_data['time'].apply(lambda x: pd.to_datetime(x).weekday())
-    ana_data["is_holiday"] = ana_data['weekday'].apply(lambda x: 1 if x in [5,6] else 0)
+    ana_data["is_holiday"] = ana_data['weekday'].apply(lambda x: 1 if x in [5, 6] else 0)
     work_load_mean = ana_data[ana_data["is_holiday"] == 0]['power_load'].mean()
     holiday_load_mean = ana_data[ana_data["is_holiday"] == 1]['power_load'].mean()
     ax4 = fig.add_subplot(414)
-    ax4.bar(['工作日','周未'],[work_load_mean, holiday_load_mean])
+    ax4.bar(['工作日', '周未'], [work_load_mean, holiday_load_mean])
     ax4.set_title('工作日与周未的平均负荷情况')
     ax3.set_xlabel('工作日')
     plt.show()
+
+
+def feature_engineering(data, logger):
+    """特征工程"""
+    # 1. 提取出时间特征：小时、月份
+    feature_data = data.copy()
+    feature_data['hour'] = feature_data['time'].str[11:13]
+    feature_data['month'] = feature_data['time'].str[5:7]
+
+    # 热编码one-hot处理hour和month字段
+    hour_month_data = pd.get_dummies(feature_data[['hour', 'month']])
+
+    feature_data = pd.concat([feature_data,hour_month_data],axis=1)
+
+
 
 
 
 
 
 if __name__ == '__main__':
-    pd = PowerLoadModel()
+    pm = PowerLoadModel()
 
-    ana_data(pd.data_source)
+    # ana_data(pd.data_source)
+
+    feature_engineering(pm.data_source, pm.logfile)
