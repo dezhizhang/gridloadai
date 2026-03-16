@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import logging
 import os
 
@@ -44,3 +43,7 @@ class Logger(object):
         self.logger.addHandler(rotate_handler)
 
         return self.logger
+
+
+
+
